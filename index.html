@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#130d17" />
+  <title>SOLSTICE · 暮海</title>
+  <meta name="description" content="在永恒的落日里，漫游一座会呼吸的低模体素海岸。" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23140d18'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%23ff9b3d'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="暮海游戏画面"></canvas>
+    <div id="underwater-overlay" aria-hidden="true"></div>
+    <div id="collapse-flash" aria-hidden="true"></div>
+    <div id="film-top" class="film-bar" aria-hidden="true"></div>
+    <div id="film-bottom" class="film-bar" aria-hidden="true"></div>
+
+    <div id="hud" class="hidden" aria-hidden="true">
+      <div class="hud-brand">
+        <span class="hud-brand-mark">SOLSTICE</span>
+        <span class="hud-brand-sub">暮 海</span>
+      </div>
+
+      <div class="hud-top-right">
+        <div class="hud-pill coords">
+          <span class="pill-dot"></span>
+          <span id="coords-text">X 000 · Y 000 · Z 000</span>
+        </div>
+        <div class="hud-pill fps"><span id="fps-text">60</span><span class="fps-label">FPS</span></div>
+        <button id="sound-button" class="icon-button" type="button" title="静音 / 恢复 (M)" aria-label="切换声音">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z" fill="currentColor"/></svg>
+        </button>
+      </div>
+
+      <div id="crosshair" class="crosshair">
+        <i></i><i></i><i></i><i></i><span></span>
+      </div>
+
+      <div id="target" class="target">
+        <span id="target-name"></span>
+        <span id="target-action"></span>
+      </div>
+
+      <div id="toast" class="toast" role="status"></div>
+
+      <div class="hud-bottom-left">
+        <div id="mode-badge" class="mode-badge"><span class="mode-icon"></span><span id="mode-text">步行</span></div>
+        <div class="controls-whisper">
+          <span><b>WASD</b> 漫步</span>
+          <span><b>SPACE</b> 跳跃</span>
+          <span><b>SHIFT</b> 疾跑 / 下降</span>
+          <span><b>F</b> 飞行</span>
+          <span><b>LMB</b> 挖掘</span>
+          <span><b>RMB</b> 放置</span>
+          <span><b>H</b> 藏起界面</span>
+        </div>
+      </div>
+
+      <div class="hotbar-wrap">
+        <div id="item-readout" class="item-readout">
+          <span id="selected-name">暮草甸</span>
+          <span id="selected-en">DUSK TURF</span>
+        </div>
+        <div id="hotbar" class="hotbar" aria-label="物品栏"></div>
+      </div>
+
+      <div class="horizon-marker" aria-hidden="true"><span></span><i></i><span></span></div>
+      <div class="hud-caption">18:47 · 永恒的落日 · 西风 2.1</div>
+    </div>
+
+    <div id="pause" class="screen pause hidden" aria-hidden="true">
+      <div class="pause-scrim"></div>
+      <div class="pause-panel">
+        <div class="eyebrow">THE DUSK HOLDS ITS BREATH</div>
+        <h2>世界停在这里。</h2>
+        <p class="pause-copy">海面还在反光，松林还在摇晃。等你回来。</p>
+        <div class="pause-actions">
+          <button id="resume-button" class="button primary" type="button"><span>继续漫游</span><small>ESC</small></button>
+          <button id="return-button" class="button ghost" type="button">回到落日崖</button>
+          <button id="pause-sound-button" class="button ghost" type="button">声音：开</button>
+        </div>
+        <div class="pause-footer">
+          <span>左键破坏 · 右键放置 · 1–9 选择 · 双击空格飞行</span>
+          <span class="version">SOLSTICE / v1.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="menu" class="screen menu hidden" aria-hidden="true">
+      <div class="menu-scrim"></div>
+      <div class="menu-content">
+        <div class="menu-topline">
+          <span class="line-mark"></span>
+          <span>AN ENDLESS DUSK STUDY</span>
+          <span class="menu-index">01 — 暮海</span>
+        </div>
+        <div class="menu-title-block">
+          <div class="title-kicker">A LOW-POLY VOXEL COAST</div>
+          <h1>SOLSTICE</h1>
+          <div class="cn-title"><span>暮</span><span>海</span></div>
+          <p class="menu-lead">太阳停在海上，岩石记得自己的重量。<br />在这座永恒的落日海岸，建起，或推倒。</p>
+        </div>
+        <div class="menu-cta">
+          <button id="start-button" class="start-button" type="button">
+            <span class="start-ring"></span>
+            <span class="start-label">踏进落日</span>
+            <span class="start-key">ENTER</span>
+          </button>
+          <span class="menu-note">创造模式 · 无夜晚 · 无敌人</span>
+        </div>
+        <div class="menu-bottom">
+          <div class="menu-controls-grid">
+            <div><b>WASD</b><span>漫步海岸</span></div>
+            <div><b>MOUSE</b><span>转动目光</span></div>
+            <div><b>LMB / RMB</b><span>破坏 / 放置</span></div>
+            <div><b>SPACE ×2</b><span>创造飞行</span></div>
+          </div>
+          <div class="menu-quote">“这里没有浮空的树。<br />也没有无重量的石头。”</div>
+        </div>
+      </div>
+      <div class="menu-side-note">WEST COAST · 18:47 · WIND 2.1 M/S</div>
+    </div>
+
+    <div id="loading" class="loading">
+      <div class="loading-stars"></div>
+      <div class="loading-center">
+        <div class="loading-eyebrow">SOLSTICE / 暮海</div>
+        <h2>正在让潮汐靠岸</h2>
+        <div class="loading-bar"><span id="loading-fill"></span></div>
+        <div class="loading-row"><span id="loading-label">抬起海崖与松林…</span><span id="loading-percent">0%</span></div>
+      </div>
+      <div class="loading-footer">
+        <span>程序生成 · 低模体素 · 重力与结构</span>
+        <span>ABOUT 18:47, THE SUN NEVER SETS</span>
+      </div>
+    </div>
+
+    <div id="fatal" class="fatal hidden">
+      <div>
+        <h2>世界没有亮起来</h2>
+        <p id="fatal-copy">你的浏览器没有提供 WebGL2。请用新版 Chrome、Edge 或 Firefox，并开启硬件加速。</p>
+      </div>
+    </div>
+
+    <div id="fade" class="fade"></div>
+  </div>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="src/core.js"></script>
+  <script src="src/world.js"></script>
+  <script src="src/sky.js"></script>
+  <script src="src/water.js"></script>
+  <script src="src/props.js"></script>
+  <script src="src/physics.js"></script>
+  <script src="src/postfx.js"></script>
+  <script src="src/ui.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/player.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>

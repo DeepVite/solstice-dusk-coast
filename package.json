@@ -1,0 +1,10 @@
+{
+  "name": "solstice-dusk-coast",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SOLSTICE · 暮海 — an eternal-sunset low-poly voxel coast with gravity and structural physics.",
+  "scripts": {
+    "start": "node serve.mjs"
+  },
+  "license": "MIT"
+}
