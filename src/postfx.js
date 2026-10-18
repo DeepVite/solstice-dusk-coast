@@ -272,13 +272,32 @@
       this.compositeRT = null;
       this.allocated = false;
       this.gl2 = renderer.capabilities && renderer.capabilities.isWebGL2;
+      this.hdrRequested = !!opts.hdr;
+      this.hdrAvailable = false;
       this.hdrType = THREE.UnsignedByteType;
+
       if (this.gl2) {
         try {
-          if (renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float')) this.hdrType = THREE.HalfFloatType;
-        } catch (e) { this.hdrType = THREE.UnsignedByteType; }
+          this.hdrAvailable = renderer.extensions.has('EXT_color_buffer_float') ||
+            renderer.extensions.has('EXT_color_buffer_half_float');
+        } catch (e) {
+          this.hdrAvailable = false;
+        }
       }
-      if (this.hdrType === THREE.UnsignedByteType) this.brightMat.uniforms.uThreshold.value = 0.68;
+
+      // Compatibility-first: automatic HalfFloat/HDR targets are known to
+      // corrupt on some ANGLE/D3D11 stacks (INC-2026-001). Keep the HDR path
+      // for explicitly opted-in diagnostics or validated devices only.
+      if (this.hdrRequested && this.hdrAvailable) this.hdrType = THREE.HalfFloatType;
+      this.hdrEnabled = this.hdrType === THREE.HalfFloatType;
+      this.renderMode = this.hdrEnabled ? 'hdr' : 'ldr';
+      this.brightMat.uniforms.uThreshold.value = this._brightThreshold();
+    }
+
+    _brightThreshold() {
+      const ldr = this.hdrType === THREE.UnsignedByteType;
+      if (this.quality === 'low') return ldr ? 0.82 : 1.2;
+      return ldr ? 0.68 : 1.02;
     }
 
     allocate() {
@@ -327,7 +346,7 @@
 
     setQuality(q) {
       this.quality = q;
-      this.brightMat.uniforms.uThreshold.value = q === 'low' ? 1.2 : 1.02;
+      this.brightMat.uniforms.uThreshold.value = this._brightThreshold();
     }
 
     resize(w, h) {

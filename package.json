@@ -1,8 +1,20 @@
 {
   "name": "solstice-dusk-coast",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "SOLSTICE · 暮海 — an eternal-sunset low-poly voxel coast with gravity and structural physics.",
+  "homepage": "https://github.com/DeepVite/solstice-dusk-coast#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DeepVite/solstice-dusk-coast.git"
+  },
+  "keywords": [
+    "three.js",
+    "webgl",
+    "voxel",
+    "low-poly",
+    "creative-game"
+  ],
   "scripts": {
     "start": "node serve.mjs"
   },

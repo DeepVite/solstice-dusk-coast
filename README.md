@@ -4,6 +4,8 @@
 
 ![style](https://img.shields.io/badge/renderer-three.js%20r149-orange) ![mode](https://img.shields.io/badge/mode-creative-8a6b56) ![physics](https://img.shields.io/badge/world-gravity%20%2B%20structural-A6634A)
 
+[GitHub 仓库](https://github.com/DeepVite/solstice-dusk-coast) · [变更记录](changelog.md)
+
 ## 怎么打开
 
 ### 最简单
@@ -70,7 +72,8 @@ npm start
 
 ## 画面技术
 
-- 手写 HDR 后处理管线（不依赖 examples/addons）：阈值高光、双重高斯 bloom、屏幕空间径向体积光、日盘泛光、三枚很淡的透镜鬼影、ACES Filmic、色温分级、边缘色散、暗角、胶片颗粒、柔边 AA。
+- 手写后期管线（不依赖 examples/addons）：阈值高光、双重高斯 bloom、屏幕空间径向体积光、日盘泛光、三枚很淡的透镜鬼影、ACES Filmic、色温分级、边缘色散、暗角、胶片颗粒、柔边 AA。
+- 默认使用 **LDR 兼容渲染目标**，避免部分 GPU/ANGLE 驱动对 HalfFloat framebuffer 的异常；HDR 路径保留给经过验证的设备或诊断使用（见 [changelog.md](changelog.md)）。
 - **永恒日落**：天空穹顶为自定义 shader。朝太阳一侧是金橙色地平线，背阳一侧是粉紫色；太阳是一个清晰的橙色圆盘，带暖色光晕、云层遮蔽与低空霞光。
 - **海面**：解析波纹法线、天空/云层反射、菲涅尔、太阳高光、显式的“日光路”以及随潮线呼吸的泡沫。海水近岸半透，露出发紫的浅滩。
 - **长影**：低角度方向光 + 2048 PCF Soft shadow map，光随玩家移动。海洋、树木、巨砾和地形都在光里。
@@ -89,12 +92,14 @@ src/sky.js          天空 shader、太阳、云
 src/water.js        海面 shader、反射、日光路、泡沫
 src/props.js        低模树、岩石、草花、海鸟、船、薄雾、手持物
 src/physics.js      支撑分析、坍塌、碎石、树木倒塌、粉尘
-src/postfx.js       HDR bloom / 体积光 / ACES / 调色
+src/postfx.js       后期管线：默认 LDR，HDR 可选（bloom / 体积光 / ACES / 调色）
 src/player.js       第一人称移动、碰撞、挖掘/放置、飞行
 src/audio.js        程序化海浪、风、海鸥与材质音
 src/ui.js           菜单、HUD、程序化物品图标
 src/main.js         启动、载入、灯光与主循环
 serve.mjs           可选的无依赖静态服务器
+changelog.md        版本变更与工程文档入口
+docs/               事故、决策、验证、发布与 AI 开发记录
 ```
 
 ## 一些提示
@@ -107,6 +112,14 @@ serve.mjs           可选的无依赖静态服务器
 ## 兼容性
 
 需要支持 WebGL 的现代浏览器。推荐 Chrome / Edge。启用硬件加速会得到明显更好的 bloom 和阴影表现。
+
+后期默认使用 8 位 LDR 渲染目标。这是刻意选择的兼容性默认值：部分 GPU/ANGLE 驱动会错误处理 HalfFloat/HDR framebuffer，导致 3D 画面出现彩色雪花、柔焦或偶发正常帧。HDR 代码仍保留，但只能由验证过的设备或诊断代码显式启用。
+
+## 变更记录与工程记录
+
+- [changelog.md](changelog.md) — 版本入口与工程文档索引
+- [docs/README.md](docs/README.md) — 事故、决策、验证、发布和 AI 开发记录的组织方式
+- [docs/incidents/INC-2026-001-half-float-post-processing-corruption.md](docs/incidents/INC-2026-001-half-float-post-processing-corruption.md) — 本次兼容性缺陷的完整记录
 
 ## 许可
 
